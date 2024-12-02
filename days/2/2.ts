@@ -37,10 +37,23 @@ const assertRange = (row: number[]) => {
     return true;
 }
 
+
 let count = 0;
+const check = (report) => {
+    return (assertAsc(report) || assertDec(report)) && assertRange(report);
+}
+
 reports.forEach(report => {
-    if ((assertAsc(report) || assertDec(report)) && assertRange(report)) {
+    if (check(report)) {
         count += 1;
+        return;
+    }
+
+    for (let i = 0; i < report.length; i++) {
+        if (check(report.toSpliced(i, 1))) {
+            count += 1;
+            return;
+        }
     }
 });
 console.log(count);
