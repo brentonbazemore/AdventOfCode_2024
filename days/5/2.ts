@@ -1,3 +1,4 @@
+console.time();
 import '../../types/helper.d.ts';
 
 const inputFile = process.argv[2];
@@ -56,3 +57,4 @@ incorrectOrders.forEach(list => {
     sum += list[Math.floor(list.length / 2)]
 })
 console.log(sum);
+console.timeEnd();
