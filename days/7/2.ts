@@ -4,7 +4,7 @@ const inputFile = process.argv[2];
 const rawData = await Bun.file(`${import.meta.dir}/${inputFile || 'input.txt'}`).text();
 const data = rawData.split('\n');
 
-const ops = ['*', '+'];
+const ops = ['*', '+', '||'];
 const build = (built: string, listLength: number) => {
   if (listLength === 0) {
     return [built];
@@ -24,7 +24,7 @@ data.forEach((row) => {
   const result = +rawResult;
   const factors = rest.split(' ').map(Number);
 
-  const operationOrders = build('', factors.length - 1).map((exp) => exp.substring(1).split(':'));
+  const operationOrders = build('', factors.length - 1).map((exp) => exp.substring(1).split(':').map(symbol => symbol === '||' ? '' : symbol));
   const valid = operationOrders.some((operationOrder) => {
     const copy = [...factors];
     let value = copy.shift();
