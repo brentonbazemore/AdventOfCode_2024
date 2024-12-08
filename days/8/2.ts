@@ -27,9 +27,8 @@ for (let y = 0; y < data.length; y++) {
   }
 }
 
-const antinodes = new Map<string, string[]>(); // not sure if 2 antinodes from same node can overlap
+const antinodes = new Set<string>(); // not sure if 2 antinodes from same node can overlap
 nodes.forEach((locations, node) => {
-  // const pairs = new Map();
 
   locations.forEach(locationKey1 => {
     const [x1, y1] = makeCoords(locationKey1);
@@ -39,33 +38,38 @@ nodes.forEach((locations, node) => {
         return;
       }
 
-      // const pathKey = [locationKey1, locationKey2].sort().join(':');
-      // if (pairs.has(pathKey)) {
-      //   return;
-      // }
-
       const [x2, y2] = makeCoords(locationKey2);
       const [xDiff, yDiff] = distance(x1, y1, x2, y2);
-      const [x, y] = [x1 - xDiff, y1 - yDiff];
-      
-      if (x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom) {
-        if (antinodes.has(node)) {
-          antinodes.get(node)?.push(makeKey(x, y));
+
+      let i = 1;
+      while (true) {
+        const [x, y] = [x1 - (xDiff * i), y1 - (yDiff * i)];
+        if (x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom) {
+          antinodes.add(makeKey(x, y));
         } else {
-          antinodes.set(node, [makeKey(x, y)]);
+          break;
         }
+        i++;
+      }
+      i = 1;
+      while (true) {
+        const [x, y] = [x1 + (xDiff * i), y1 + (yDiff * i)];
+        if (x >= bounds.left && x < bounds.right && y >= bounds.top && y < bounds.bottom) {
+          antinodes.add(makeKey(x, y));
+        } else {
+          break;
+        }
+        i++;
       }
     });
   });
 });
 
-const unique = new Set();
-antinodes.forEach(n => n.forEach(o => unique.add(o)));
 // for (let y = 0; y < data.length; y++) {
 //   let line = '';
 //   for (let x = 0; x < data[0].length; x++) {
-//     line += unique.has(`${x}_${y}`) ? '#' : '.'
+//     line += antinodes.has(`${x}_${y}`) ? '#' : '.'
 //   }
 //   console.log(line);
 // }
-console.log(unique.size)
+console.log(antinodes.size)
