@@ -17,18 +17,42 @@ data.forEach((block, i) => {
     }
     pos++;
   }
-  
+
   isMem = !isMem;
 });
 
-let leftmostFree = memory.findIndex(mem => mem === '.');
-let rightmostMem = memory.findLastIndex(mem => mem !== '.');
-while (leftmostFree < rightmostMem) {
-  memory[leftmostFree] = memory[rightmostMem];
-  memory[rightmostMem] = '.';
+const maxFile = +memory[memory.length - 1];
+for (let fileId = maxFile; fileId > 0; fileId--) {
+  const fileStart = memory.findIndex((mem) => +mem === fileId);
+  const fileEnd = memory.findLastIndex((mem) => +mem === fileId);
+  const fileSize = (fileEnd - fileStart) + 1;
+  const freeChunk = memory.findIndex((mem, j) => {
+    for (let k = 0; k < fileSize; k++) {
+      if (memory[j + k] !== '.') {
+        return false;
+      }
+    }
 
-  leftmostFree = memory.findIndex((mem, i) => i > leftmostFree && mem === '.');
-  rightmostMem = memory.findLastIndex((mem, i) => i < rightmostMem && mem !== '.');
+    return true;
+  });
+
+  if (freeChunk > fileStart) {
+    continue;
+  }
+
+  if (freeChunk != -1) {
+    for (let j = 0; j < fileSize; j++) {
+      memory[freeChunk + j] = `${fileId}`;
+      memory[fileStart + j] = '.';
+    }
+  }
 }
 
-console.log(memory.filter(mem => mem !== '.').reduce((prev, curr, i) => prev += (+curr * i), 0));
+console.log(
+  memory.reduce((prev, curr, i) => {
+    if (curr === '.') {
+      return prev;
+    }
+    return (prev += +curr * i);
+  }, 0)
+);
