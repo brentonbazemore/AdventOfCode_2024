@@ -37,4 +37,4 @@ for (let y = 0; y < data.length; y++) {
         }
     }
 }
-console.log(sum);
+console.log(out.filter(p => p.length === 10).length);
