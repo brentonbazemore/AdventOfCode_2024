@@ -15,7 +15,7 @@ const addToMap = (map: Map<number, number>, key: number, value: number) => {
     map.set(key, map.get(key)! + value);
 }
 
-for (let blink = 0; blink < 25; blink++) {
+for (let blink = 0; blink < 75; blink++) {
     const nextNumbers = new Map<number, number>();
 
     numbers.forEach((count, number) => {
