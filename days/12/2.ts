@@ -44,26 +44,63 @@ while (candidates.size > 0) {
 
   const plants = new Set(fill(x, y, id, new Set<string>()));
   const area = plants.size;
-  let perimeter = 0;
+  const bound = { top: Infinity, right: -Infinity, bottom: -Infinity, left: Infinity };
   plants.forEach(plant => {
     candidates.delete(plant);
     const [plantX, plantY] = plant.split('_').map(Number);
-    
-    if (!plants.has(`${plantX + 1}_${plantY}`)) {
-      perimeter++;
+
+    if (plantX <= bound.left) {
+      bound.left = plantX;
     }
-    if (!plants.has(`${plantX - 1}_${plantY}`)) {
-      perimeter++;
+    if (plantX >= bound.right) {
+      bound.right = plantX;
     }
-    if (!plants.has(`${plantX}_${plantY + 1}`)) {
-      perimeter++;
+    if (plantY <= bound.top) {
+      bound.top = plantY;
     }
-    if (!plants.has(`${plantX}_${plantY - 1}`)) {
-      perimeter++;
+    if (plantY >= bound.bottom) {
+      bound.bottom = plantY;
     }
   });
 
-  sum += area * perimeter;
+  let sides = 0;
+  for (let i = 0; i < (bound.bottom - bound.top) + 2; i++) {
+    let focusPoint = [bound.left, bound.top + i];
+    let prev = 'false,false';
+    while (true) {
+      if (focusPoint[0] > bound.right) {
+        break;
+      }
+      const [focusX, focusY] = focusPoint;
+      const [top, bottom] = [plants.has(`${focusX}_${focusY - 1}`), plants.has(`${focusX}_${focusY}`)];
+      if (top != bottom && [top, bottom].join() !== prev) {
+        sides++;
+      }
+      prev = [top, bottom].join();
+  
+      focusPoint = [focusX + 1, focusY];
+    }
+  }
+
+  for (let i = 0; i < (bound.right - bound.left) + 2; i++) {
+    let focusPoint = [bound.left + i, bound.top];
+    let prev = 'false,false';
+    while (true) {
+      if (focusPoint[1] > bound.bottom) {
+        break;
+      }
+      const [focusX, focusY] = focusPoint;
+      const [left, right] = [plants.has(`${focusX - 1}_${focusY}`), plants.has(`${focusX}_${focusY}`)];
+      if (left != right && [left, right].join() !== prev) {
+        sides++;
+      }
+      prev = [left, right].join();
+  
+      focusPoint = [focusX, focusY + 1];
+    }
+  }
+
+  sum += area * sides;
 }
 
 console.log(sum);
