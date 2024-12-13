@@ -15,8 +15,8 @@ data.forEach(rawMachine => {
     const [ax, ay] = rawA.split(', ').map(section => section.split('+')[1]).map(Number);
     const [bx, by] = rawB.split(', ').map(section => section.split('+')[1]).map(Number);
     const [px, py] = rawP.split(', ').map(section => section.split('=')[1]).map(Number);
-    const b = +nerdamer(`((${px}-(b*${bx}))/${ax}) = ((${py}-(b*${by}))/${ay})`).solveFor('b').toString();
-    const a = +nerdamer(`a=((${px}-(${b}*${bx}))/${ax})`).solveFor('a').toString();
+    const b = +nerdamer(`((${px + 10000000000000}-(b*${bx}))/${ax}) = ((${py + 10000000000000}-(b*${by}))/${ay})`).solveFor('b').toString();
+    const a = +nerdamer(`a=((${px + 10000000000000}-(${b}*${bx}))/${ax})`).solveFor('a').toString();
     if (isNaN(a) || isNaN(b)) {
 
     } else {
