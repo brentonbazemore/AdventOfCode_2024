@@ -6,21 +6,21 @@ const [rawRoom, instructions] = rawData.split('\n\n');
 const room = rawRoom.split('\n');
 
 let robot = { x: 0, y: 0 };
-const entities = new Map<string, { type: 'wall' | 'box' }>();
+const entities = new Map<string, { type: 'wall' | 'leftbox' | 'rightbox' }>();
 for (let y = 0; y < room.length; y++) {
   for (let x = 0; x < room[0].length; x++) {
     if (room[y][x] === '#') {
-      entities.set(`${x}_${y}`, { type: 'wall' });
+      entities.set(`${x * 2}_${y}`, { type: 'wall' });
+      entities.set(`${(x * 2) + 1}_${y}`, { type: 'wall' });
     }
 
     if (room[y][x] === 'O') {
-      entities.set(`${x}_${y}`, {
-        type: 'box',
-      });
+      entities.set(`${x * 2}_${y}`, { type: 'leftbox' });
+      entities.set(`${(x * 2) + 1}_${y}`, { type : 'rightbox' });
     }
 
     if (room[y][x] === '@') {
-      robot = { x, y };
+      robot = { x: x * 2, y };
     }
   }
 }
@@ -44,21 +44,57 @@ const scan = (startX: number, startY: number, direction: 'up' | 'down' | 'left' 
   }
 };
 
-const scoot = (x: number, y: number, direction: 'up' | 'down' | 'left' | 'right') => {
+const check = (x: number, y: number, direction: 'up' | 'down' | 'left' | 'right') => {
+  // console.log('checking');
   const [xDiff, yDiff] = scanDir[direction];
   const [nextX, nextY] = [x + xDiff, y + yDiff];
 
-  const available = scan(x, y, direction);
-  if (available == null) {
+  const movers: ({ x: number, y: number } | null)[] = [{ x, y }];
+  const next = entities.get(`${nextX}_${nextY}`);
+  if (!next) {
+    return movers;  
+  }
+
+  if (next.type === 'wall') {
+    return [null];
+  }
+
+  if (direction === 'up' || direction === 'down') {
+    if (next?.type === 'leftbox') {
+      movers.push(...check(nextX, nextY, direction));
+      movers.push(...check(nextX + 1, nextY, direction));
+    } else if (next?.type === 'rightbox') {
+      movers.push(...check(nextX - 1, nextY, direction));
+      movers.push(...check(nextX, nextY, direction));
+    }
+  } else {
+    movers.push(...check(nextX, nextY, direction));
+  }
+
+  return movers;
+}
+
+const scoot = (x: number, y: number, direction: 'up' | 'down' | 'left' | 'right') => {
+  const movers = check(x, y, direction);
+  // console.log(movers);
+
+  if (movers.some(mover => mover === null)) {
     return false;
   }
-  
-  const next = entities.get(`${nextX}_${nextY}`);
-  if (next) {
-    entities.set(`${available.x}_${available.y}`, next);
-    entities.delete(`${nextX}_${nextY}`);
-  }
-  
+
+  const newPos = new Map();
+  const [xDiff, yDiff] = scanDir[direction];
+  movers.forEach((moverish) => {
+    const mover = moverish!; // literally null checking above
+    const [nextX, nextY] = [mover.x + xDiff, mover.y + yDiff];
+    newPos.set(`${nextX}_${nextY}`, entities.get(`${mover.x}_${mover.y}`)!)
+  });
+  movers.forEach((moverish) => {
+    const mover = moverish!; // literally null checking above
+    entities.delete(`${mover.x}_${mover.y}`)
+  });
+  newPos.forEach((entity, pos) => entities.set(pos, entity));
+
   return true;
 }
 
@@ -73,11 +109,13 @@ const icon2Dir = {
 const debug = () => {
   for (let y = 0; y < room.length; y++) {
     let row = '';
-    for (let x = 0; x < room[0].length; x++) {
+    for (let x = 0; x < room[0].length * 2; x++) {
       if (entities.get(`${x}_${y}`)?.type === 'wall') {
         row += '#'
-      } else if (entities.get(`${x}_${y}`)?.type === 'box') {
-        row += '0'
+      } else if (entities.get(`${x}_${y}`)?.type === 'leftbox') {
+        row += '[';
+      } else if (entities.get(`${x}_${y}`)?.type === 'rightbox') {
+        row += ']';
       } else if (robot.x === x && robot.y === y) {
         row += '@'
       } else {
@@ -87,6 +125,8 @@ const debug = () => {
     console.log(row);
   }
 }
+
+// console.log(debug());
 
 instructions.split('').forEach((instruction) => {
   // console.log('Move', instruction)
@@ -102,7 +142,7 @@ instructions.split('').forEach((instruction) => {
 
 let sum = 0;
 entities.forEach((entity, pos) => {
-  if (entity.type === 'box') {
+  if (entity?.type === 'leftbox') {
     const [x, y] = pos.split('_').map(Number);
     sum += (100 * y) + x;
   }
