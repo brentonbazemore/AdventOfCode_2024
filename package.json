@@ -21,9 +21,11 @@
   },
   "dependencies": {
     "@types/lodash": "^4.14.202",
+    "@types/node-dijkstra": "^2.5.6",
     "lodash": "^4.17.21",
     "lodash.combinations": "^18.11.1",
     "nerdamer": "^1.1.13",
+    "node-dijkstra": "^2.5.0",
     "priorityqueuejs": "^2.0.0"
   }
 }
