@@ -1,70 +1,45 @@
 import '../../types/helper.d.ts';
+import { runMachine } from './machine.ts';
 
 const inputFile = process.argv[2];
 const rawData = await Bun.file(`${import.meta.dir}/${inputFile || 'input.txt'}`).text();
 const [registerData, instData] = rawData.split('\n\n');
 
-let [a, b, c] = registerData.split('\n').map((register) => +register.split(': ')[1]);
 const instructions = instData.split(': ')[1].split(',').map(Number);
-let pointer = 0;
-let output: number[] = [];
+console.log('target', instructions.join());
+const target = instructions;
 
-const getCombo = {
-  0: (val: number) => val,
-  1: (val: number) => val,
-  2: (val: number) => val,
-  3: (val: number) => val,
-  4: (val: number) => a,
-  5: (val: number) => b,
-  6: (val: number) => c,
-  7: (val: number) => Infinity,
-};
+const magnitudes = [
+  281474976710656, 35184372088832, 4398046511104, 549755813888, 68719476736, 8589934592, 1073741824, 134217728, 16777216, 2097152, 262144, 32768, 4096, 512, 64,
+  8, 1,
+];
 
-const machine = {
-  0: (combo: number) => {
-    a = Math.floor(a / 2 ** getCombo[combo as 1](combo));
-    return 2;
-  },
-  1: (literal: number) => {
-    b = b ^ literal;
-    return 2;
-  },
-  2: (combo: number) => {
-    b = getCombo[combo as 1](combo) % 8;
-    return 2;
-  },
-  3: (literal: number) => {
-    if (a === 0) {
-      return 2;
+const solutions: number[] = [];
+const findSolutions = (n: number, solution: number) => {
+  if (n > magnitudes.length) {
+    return;
+  }
+
+  for (let j = 0; j < magnitudes[n - 1]; j += magnitudes[n]) {
+    const output = runMachine(instructions, solution + j);
+    console.log(n, output.join());
+    if (output.join() === target.join()) {
+      solutions.push(solution + j);
     }
-    pointer = literal;
-    return 0;
-  },
-  4: (operand: number) => {
-    b = b ^ c;
-    return 2;
-  },
-  5: (combo: number) => {
-    const out = `${getCombo[combo as 1](combo) % 8}`;
-    output.push(...out.split('').map(Number));
-    return 2;
-  },
-  6: (combo: number) => {
-    b = Math.floor(a / 2 ** getCombo[combo as 1](combo));
-    return 2;
-  },
-  7: (combo: number) => {
-    c = Math.floor(a / 2 ** getCombo[combo as 1](combo));
-    return 2;
-  },
+
+    if (output.at(-n) === target.at(-n)) {
+      findSolutions(n + 1, solution + j);
+    }
+
+  }
 };
 
-while (instructions[pointer] != null) {
-  const opcode = +instructions[pointer] as 1;
-  const operand = +instructions[pointer + 1];
-  // console.log(opcode, operand)
-  const inc = machine[opcode](operand);
-  pointer += inc;
-}
+findSolutions(1, 0);
+console.log(Math.min(...solutions));
 
-console.log(output.join())
+// for (let i = 1; i < magnitudes.length; i++) {
+//   for (let j = magnitudes[i]; j < magnitudes[i - 1]; j += magnitudes[i]) {
+//     const output = runMachine(instructions, j);
+//     console.log(output.join());
+//   }
+// }
