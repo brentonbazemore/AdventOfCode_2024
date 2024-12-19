@@ -33,9 +33,7 @@ const check = (pattern: string, cache: Map<string, number>) => {
 let sum = 0;
 patterns.forEach((pattern, i) => {
   // console.log('Pattern', i);
-  if (check(pattern, new Map<string, number>())) {
-    sum += 1;
-  }
+  sum += check(pattern, new Map<string, number>());
 });
 
 console.log(sum);
